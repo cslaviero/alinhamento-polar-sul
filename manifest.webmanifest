@@ -1,0 +1,19 @@
+{
+  "name": "Alinhamento polar sul",
+  "short_name": "Alinhamento Sul",
+  "description": "Ferramenta visual e por sensores para alinhamento de telescópios com o Sul.",
+  "start_url": "./alinhamento-polar-sul.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070d13",
+  "theme_color": "#080f16",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

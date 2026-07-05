@@ -1,0 +1,1507 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080f16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>Alinhamento polar sul</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070d13;
+      --surface: #0b141d;
+      --surface-2: #0e1923;
+      --line: #263642;
+      --line-strong: #3c505f;
+      --text: #f2f5f7;
+      --muted: #9caab4;
+      --amber: #f0b854;
+      --amber-strong: #ff8b18;
+      --cyan: #37d5f5;
+      --cyan-dark: #102f3a;
+      --danger: #ff8b7e;
+      --radius: 12px;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    button, input { font: inherit; }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    .app {
+      height: 100vh;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 66px 1fr 38px;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--line);
+      background: #080f16;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      color: var(--amber);
+      flex: 0 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 680;
+      letter-spacing: -0.02em;
+    }
+
+    .header-note {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .canvas-panel {
+      min-height: 560px;
+      display: grid;
+      grid-template-rows: 1fr 48px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #05090d;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    #canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .canvas-hint {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      max-width: calc(100% - 28px);
+      padding: 8px 11px;
+      color: #dfe7ec;
+      background: rgba(5, 10, 15, 0.86);
+      border: 1px solid rgba(112, 139, 155, 0.45);
+      border-radius: 8px;
+      font-size: 12px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+    }
+
+    .canvas-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 13px;
+      border-top: 1px solid var(--line);
+      background: #0a131b;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .legend-line {
+      width: 22px;
+      height: 2px;
+      background: var(--cyan);
+      box-shadow: 0 0 7px rgba(55, 213, 245, 0.7);
+    }
+
+    .toolbar-button {
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .toolbar-button:hover { background: #12202b; }
+
+    .zoom-controls {
+      gap: 5px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #071019;
+    }
+
+    .zoom-button {
+      width: 28px;
+      min-height: 26px;
+      padding: 0;
+      border: 0;
+      border-radius: 5px;
+      color: var(--text);
+      background: transparent;
+      font-size: 17px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .zoom-button:hover { background: #182630; }
+
+    #zoomOutput {
+      min-width: 46px;
+      color: #d9e5eb;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    aside {
+      min-height: 0;
+      overflow: auto;
+      padding-right: 2px;
+      scrollbar-color: var(--line-strong) transparent;
+    }
+
+    .panel {
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .panel:last-child { margin-bottom: 0; }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 680;
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+    }
+
+    .panel-content {
+      margin-top: 14px;
+    }
+
+    .collapse-button {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .collapse-button:hover {
+      color: var(--text);
+      border-color: var(--line);
+      background: #13212b;
+    }
+
+    .collapse-icon {
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(45deg) translate(-1px, -1px);
+      transition: transform 160ms ease;
+    }
+
+    .panel.collapsed .collapse-icon {
+      transform: rotate(-45deg) translate(-1px, 1px);
+    }
+
+    .panel-content[hidden] {
+      display: none;
+    }
+
+    .upload {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      border: 1px solid #4387ba;
+      border-radius: 8px;
+      color: #f5fcff;
+      background: #166aa6;
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .upload:hover { background: #1979bb; }
+    .upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    .small-note {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .control { margin-top: 15px; }
+
+    .control-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: #d9e1e6;
+      font-size: 13px;
+    }
+
+    .number-input {
+      width: 78px;
+      height: 32px;
+      padding: 0 8px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      color: var(--text);
+      text-align: right;
+      background: #091119;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--cyan);
+      cursor: pointer;
+    }
+
+    .range-scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      color: #748793;
+      font-size: 11px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 0.7fr;
+      gap: 9px;
+      margin-top: 15px;
+    }
+
+    .button {
+      min-height: 39px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      color: var(--text);
+      background: #111e28;
+      font-size: 13px;
+      font-weight: 630;
+      cursor: pointer;
+    }
+
+    .button:hover { background: #172834; }
+    .button.primary { border-color: #2c9fb9; background: #0d596c; }
+    .button.primary:hover { background: #0e6d82; }
+    .button.active { color: #021015; background: var(--cyan); border-color: var(--cyan); }
+
+    .result {
+      border-color: #1aa6c2;
+      background: linear-gradient(180deg, #0b1821 0%, #09131a 100%);
+    }
+
+    .result-label {
+      margin: 2px 0 5px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .result-value {
+      margin: 0;
+      color: var(--cyan);
+      font-size: clamp(24px, 2.25vw, 32px);
+      font-weight: 720;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+    }
+
+    .result-explanation {
+      margin: 11px 0 0;
+      color: #c0cbd2;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .sensor-panel {
+      border-color: #43515a;
+      background: #0a141c;
+    }
+
+    .sensor-target {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      align-items: center;
+      gap: 13px;
+      margin: 4px 0 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #071019;
+    }
+
+    .sensor-dial {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      border: 1px solid #52626c;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #132630 0 10%, transparent 11%), #09141c;
+    }
+
+    .sensor-dial::before,
+    .sensor-dial::after {
+      content: "";
+      position: absolute;
+      background: #40515d;
+    }
+
+    .sensor-dial::before { left: 28px; top: 5px; width: 1px; height: 48px; }
+    .sensor-dial::after { left: 5px; top: 28px; width: 48px; height: 1px; }
+
+    .sensor-needle {
+      position: absolute;
+      left: 27px;
+      bottom: 29px;
+      width: 4px;
+      height: 23px;
+      border-radius: 3px 3px 1px 1px;
+      background: var(--cyan);
+      transform-origin: 50% 100%;
+      transform: rotate(0deg);
+      box-shadow: 0 0 8px rgba(55, 213, 245, .5);
+      transition: transform 100ms linear, background 150ms ease;
+    }
+
+    .sensor-copy small {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    .sensor-copy strong {
+      display: block;
+      color: var(--cyan);
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .sensor-reading {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 10px 0;
+      color: #c8d3d9;
+      font-size: 12px;
+    }
+
+    .sensor-track {
+      position: relative;
+      height: 8px;
+      margin: 12px 0 5px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #1b2932;
+    }
+
+    .sensor-progress {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      background: var(--cyan);
+      box-shadow: 0 0 10px rgba(55, 213, 245, .55);
+      transition: width 100ms linear, left 100ms linear;
+    }
+
+    .sensor-zero {
+      position: absolute;
+      left: 50%;
+      top: -2px;
+      width: 2px;
+      height: 12px;
+      background: #dce6eb;
+    }
+
+    .sensor-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .sensor-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #70808a;
+    }
+
+    .sensor-status.running::before { background: var(--cyan); }
+    .sensor-status.aligned { color: #8ceab4; font-weight: 650; }
+    .sensor-status.aligned::before { background: #60d694; box-shadow: 0 0 0 3px rgba(96,214,148,.13); }
+    .sensor-status.warning { color: #f0bd72; }
+    .sensor-status.warning::before { background: #f0b854; }
+
+    .sensor-actions {
+      display: grid;
+      grid-template-columns: 1fr .65fr;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .sensor-secondary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 9px;
+      margin-top: 9px;
+    }
+
+    .link-button {
+      padding: 4px 0;
+      border: 0;
+      color: #a8bac4;
+      background: transparent;
+      font-size: 11px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+
+    .guide {
+      margin: 0;
+      padding-left: 18px;
+      color: #c1ccd3;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .guide li + li { margin-top: 7px; }
+
+    footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 17px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      background: #080f16;
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #60d694;
+      box-shadow: 0 0 0 3px rgba(96, 214, 148, 0.12);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 900px) {
+      .app { height: auto; grid-template-rows: 60px auto 36px; overflow: visible; }
+      main { grid-template-columns: 1fr; }
+      .canvas-panel { min-height: 68vh; }
+      aside { overflow: visible; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .panel { margin: 0; }
+      .result { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 0 14px; }
+      h1 { font-size: 17px; }
+      .header-note { display: none; }
+      main { padding: 9px; gap: 9px; }
+      .canvas-panel { min-height: 58vh; }
+      aside { grid-template-columns: 1fr; }
+      .result { grid-column: auto; }
+      .canvas-toolbar { padding: 0 9px; }
+      .canvas-toolbar { gap: 7px; }
+      .legend-group { display: none; }
+      .image-status-group { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" stroke="currentColor"/>
+          <path d="M16 2v28M2 16h28M7.3 7.3l17.4 17.4M24.7 7.3 7.3 24.7" stroke="currentColor" stroke-width=".8"/>
+          <path d="m16 6 2.2 7.8L26 16l-7.8 2.2L16 26l-2.2-7.8L6 16l7.8-2.2L16 6Z" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        <h1>Alinhamento polar sul</h1>
+      </div>
+      <div class="header-note">A imagem permanece apenas neste navegador</div>
+    </header>
+
+    <main>
+      <section class="canvas-panel" aria-label="Área de alinhamento">
+        <div class="stage" id="stage">
+          <canvas id="canvas" aria-label="Imagem com bússola e linha de alinhamento"></canvas>
+          <div class="canvas-hint" id="canvasHint">Roda ou pinça: zoom · arraste o fundo: mover · losango âmbar: girar</div>
+        </div>
+        <div class="canvas-toolbar">
+          <div class="toolbar-group legend-group">
+            <span class="legend-line" aria-hidden="true"></span>
+            <span>Linha do telescópio</span>
+          </div>
+          <div class="toolbar-group zoom-controls" aria-label="Controles de zoom">
+            <button class="zoom-button" id="zoomOut" type="button" aria-label="Diminuir zoom">−</button>
+            <output id="zoomOutput">100%</output>
+            <button class="zoom-button" id="zoomIn" type="button" aria-label="Aumentar zoom">+</button>
+            <button class="toolbar-button" id="zoomReset" type="button">Redefinir</button>
+          </div>
+          <div class="toolbar-group image-status-group">
+            <button class="toolbar-button" id="centerButton" type="button">Centralizar bússola</button>
+            <span id="imageStatus">Nenhuma imagem carregada</span>
+          </div>
+        </div>
+      </section>
+
+      <aside aria-label="Controles de alinhamento">
+        <section class="panel">
+          <h2>1. Carregar imagem</h2>
+          <label class="upload">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 16V3m0 0L7.5 7.5M12 3l4.5 4.5M5 13v6h14v-6"/></svg>
+            Carregar imagem
+            <input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp">
+          </label>
+          <p class="small-note">PNG, JPG ou WebP. A foto não é enviada para nenhum servidor.</p>
+        </section>
+
+        <section class="panel">
+          <h2>2. Orientação da bússola</h2>
+          <div class="control">
+            <div class="control-head">
+              <label for="rotationRange">Rotação</label>
+              <input class="number-input" id="rotationNumber" type="number" min="-180" max="180" step="0.1" value="0" aria-label="Rotação da bússola em graus">
+            </div>
+            <input id="rotationRange" type="range" min="-180" max="180" step="0.1" value="0">
+            <div class="range-scale"><span>−180°</span><span>Norte para cima</span><span>180°</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head"><label for="compassSizeRange">Tamanho da bússola</label><output id="compassSizeOutput">100%</output></div>
+            <input id="compassSizeRange" type="range" min="50" max="150" step="1" value="100">
+            <div class="range-scale"><span>Menor</span><span>Padrão</span><span>Maior</span></div>
+          </div>
+          <p class="small-note">Gire a bússola para coincidir com a orientação real da foto. Valores positivos giram no sentido horário.</p>
+        </section>
+
+        <section class="panel">
+          <h2>3. Linha do telescópio</h2>
+          <div class="control">
+            <div class="control-head"><label for="lineBearing">Direção na imagem</label><input class="number-input" id="lineBearing" type="number" min="0" max="359.9" step="0.1" value="167.6" aria-label="Direção da linha em graus"></div>
+            <input id="lineRange" type="range" min="0" max="359.9" step="0.1" value="167.6">
+            <div class="range-scale"><span>0° N</span><span>90° L</span><span>180° S</span><span>270° O</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head"><label for="lengthRange">Comprimento</label><output id="lengthOutput">62%</output></div>
+            <input id="lengthRange" type="range" min="20" max="90" step="1" value="62">
+          </div>
+          <div class="button-row">
+            <button class="button primary" id="drawButton" type="button">Desenhar linha</button>
+            <button class="button" id="clearButton" type="button">Limpar</button>
+          </div>
+          <p class="small-note">Clique em “Desenhar linha” e depois clique ou arraste sobre a imagem. Você também pode arrastar a ponta ciano.</p>
+        </section>
+
+        <section class="panel result" aria-live="polite">
+          <p class="result-label">Deslocamento em relação ao Sul</p>
+          <p class="result-value" id="resultValue">12,4° a leste do Sul</p>
+          <p class="result-explanation" id="resultExplanation">A linha do telescópio está 12,4° a leste da direção Sul indicada pela bússola.</p>
+        </section>
+
+        <section class="panel sensor-panel" aria-labelledby="sensorTitle">
+          <h2 id="sensorTitle">4. Alinhar com o celular</h2>
+          <div class="sensor-target">
+            <div class="sensor-dial" aria-hidden="true"><span class="sensor-needle" id="sensorNeedle"></span></div>
+            <div class="sensor-copy">
+              <small>Correção calculada</small>
+              <strong id="sensorTarget">Gire 12,4° para oeste</strong>
+            </div>
+          </div>
+          <div class="sensor-reading"><span>Movimento relativo</span><strong id="sensorMoved">0,0°</strong></div>
+          <div class="sensor-reading"><span>Falta mover</span><strong id="sensorRemaining">12,4° oeste</strong></div>
+          <div class="sensor-track" aria-hidden="true"><span class="sensor-progress" id="sensorProgress"></span><span class="sensor-zero"></span></div>
+          <p class="sensor-status" id="sensorStatus">Sensor parado</p>
+          <div class="sensor-actions">
+            <button class="button primary" id="sensorStart" type="button">Zerar e iniciar</button>
+            <button class="button" id="sensorStop" type="button" disabled>Parar</button>
+          </div>
+          <div class="sensor-secondary">
+            <button class="link-button" id="sensorInvert" type="button">Inverter sentido</button>
+            <span class="small-note" id="levelStatus" style="margin:0">Mantenha a tela para cima</span>
+          </div>
+          <p class="small-note">Use o celular apoiado e com a tela para cima. O acelerômetro verifica a inclinação; o giroscópio mede apenas o giro relativo, sem usar esta página como bússola absoluta.</p>
+        </section>
+
+        <section class="panel">
+          <h2>Como usar</h2>
+          <ol class="guide">
+            <li>Carregue uma foto feita na mesma direção em que o telescópio será montado.</li>
+            <li>Gire a bússola até que os pontos cardeais coincidam com a orientação real da cena.</li>
+            <li>Trace a linha no eixo em que o telescópio aponta e leia a correção em relação ao Sul.</li>
+            <li>Apoie o celular no telescópio, toque em “Zerar e iniciar” e gire até o indicador ficar verde.</li>
+          </ol>
+        </section>
+      </aside>
+    </main>
+
+    <footer><span class="status-dot" aria-hidden="true"></span><span>Pronto · Norte para cima por padrão · Referência azimutal</span></footer>
+  </div>
+
+  <script>
+    (() => {
+      const stage = document.getElementById('stage');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const imageInput = document.getElementById('imageInput');
+      const imageStatus = document.getElementById('imageStatus');
+      const rotationRange = document.getElementById('rotationRange');
+      const rotationNumber = document.getElementById('rotationNumber');
+      const lineRange = document.getElementById('lineRange');
+      const lineBearing = document.getElementById('lineBearing');
+      const lengthRange = document.getElementById('lengthRange');
+      const lengthOutput = document.getElementById('lengthOutput');
+      const drawButton = document.getElementById('drawButton');
+      const clearButton = document.getElementById('clearButton');
+      const centerButton = document.getElementById('centerButton');
+      const zoomOut = document.getElementById('zoomOut');
+      const zoomIn = document.getElementById('zoomIn');
+      const zoomReset = document.getElementById('zoomReset');
+      const zoomOutput = document.getElementById('zoomOutput');
+      const compassSizeRange = document.getElementById('compassSizeRange');
+      const compassSizeOutput = document.getElementById('compassSizeOutput');
+      const canvasHint = document.getElementById('canvasHint');
+      const resultValue = document.getElementById('resultValue');
+      const resultExplanation = document.getElementById('resultExplanation');
+      const sensorNeedle = document.getElementById('sensorNeedle');
+      const sensorTarget = document.getElementById('sensorTarget');
+      const sensorMoved = document.getElementById('sensorMoved');
+      const sensorRemaining = document.getElementById('sensorRemaining');
+      const sensorProgress = document.getElementById('sensorProgress');
+      const sensorStatus = document.getElementById('sensorStatus');
+      const sensorStart = document.getElementById('sensorStart');
+      const sensorStop = document.getElementById('sensorStop');
+      const sensorInvert = document.getElementById('sensorInvert');
+      const levelStatus = document.getElementById('levelStatus');
+
+      const state = {
+        width: 0,
+        height: 0,
+        dpr: 1,
+        image: null,
+        imageUrl: null,
+        center: { x: 0.5, y: 0.5 },
+        rotation: 0,
+        bearing: 167.6,
+        length: 0.62,
+        lineVisible: true,
+        drawMode: false,
+        drag: null,
+        dragPoint: null,
+        pointers: new Map(),
+        pinch: null,
+        zoom: 1,
+        pan: { x: 0, y: 0 },
+        compassScale: 1,
+        baseCompassRadius: 170,
+        compassRadius: 170,
+        sensor: {
+          active: false,
+          moved: 0,
+          target: 0,
+          lastTime: null,
+          inversion: -1,
+          eventCount: 0,
+          validRateCount: 0,
+          aligned: false,
+          timeout: null
+        }
+      };
+
+      const radians = degrees => degrees * Math.PI / 180;
+      const degrees = radiansValue => radiansValue * 180 / Math.PI;
+      const normalize360 = value => ((value % 360) + 360) % 360;
+      const normalize180 = value => ((value + 180) % 360 + 360) % 360 - 180;
+      const fmt = value => Math.abs(value).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+      function movementDirection(value) {
+        return value >= 0 ? 'oeste' : 'leste';
+      }
+
+      function initializeCollapsiblePanels() {
+        const storageKey = 'alinhamento-polar-paineis-recolhidos-v1';
+        let collapsedPanels = [];
+        try {
+          collapsedPanels = JSON.parse(localStorage.getItem(storageKey) || '[]');
+          if (!Array.isArray(collapsedPanels)) collapsedPanels = [];
+        } catch (_) {
+          collapsedPanels = [];
+        }
+
+        const panels = Array.from(document.querySelectorAll('aside > .panel'));
+        panels.forEach((panel, index) => {
+          const existingTitle = panel.querySelector(':scope > h2');
+          const title = existingTitle ? existingTitle.textContent.trim() : 'Resultado';
+          if (existingTitle) existingTitle.remove();
+
+          const heading = document.createElement('div');
+          heading.className = 'panel-heading';
+          const headingTitle = existingTitle || document.createElement('h2');
+          if (!existingTitle) headingTitle.textContent = title;
+
+          const content = document.createElement('div');
+          content.className = 'panel-content';
+          content.id = `panel-content-${index + 1}`;
+          while (panel.firstChild) content.appendChild(panel.firstChild);
+
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'collapse-button';
+          toggle.setAttribute('aria-controls', content.id);
+          toggle.innerHTML = '<span class="collapse-icon" aria-hidden="true"></span>';
+
+          const setCollapsed = collapsed => {
+            panel.classList.toggle('collapsed', collapsed);
+            content.hidden = collapsed;
+            toggle.setAttribute('aria-expanded', String(!collapsed));
+            toggle.setAttribute('aria-label', `${collapsed ? 'Expandir' : 'Recolher'} ${title}`);
+          };
+
+          setCollapsed(collapsedPanels.includes(index));
+          toggle.addEventListener('click', () => {
+            const collapsed = !panel.classList.contains('collapsed');
+            setCollapsed(collapsed);
+            const current = panels
+              .map((candidate, candidateIndex) => candidate.classList.contains('collapsed') ? candidateIndex : null)
+              .filter(candidateIndex => candidateIndex !== null);
+            try { localStorage.setItem(storageKey, JSON.stringify(current)); } catch (_) {}
+          });
+
+          heading.append(headingTitle, toggle);
+          panel.append(heading, content);
+        });
+      }
+
+      function lineDeltaFromSouth() {
+        const south = normalize360(state.rotation + 180);
+        return normalize180(state.bearing - south);
+      }
+
+      function updateSensorDisplay() {
+        const sensor = state.sensor;
+        sensor.target = state.lineVisible ? normalize180(-lineDeltaFromSouth()) : 0;
+        sensorStart.disabled = !state.lineVisible;
+
+        if (!state.lineVisible) {
+          sensorTarget.textContent = 'Desenhe uma linha primeiro';
+          sensorRemaining.textContent = '—';
+        } else if (Math.abs(sensor.target) < 0.05) {
+          sensorTarget.textContent = 'A linha já está no Sul';
+          sensorRemaining.textContent = '0,0°';
+        } else {
+          sensorTarget.textContent = `Gire ${fmt(sensor.target)}° para ${movementDirection(sensor.target)}`;
+          const remaining = normalize180(sensor.target - sensor.moved);
+          sensorRemaining.textContent = `${fmt(remaining)}° ${movementDirection(remaining)}`;
+        }
+
+        sensorMoved.textContent = `${sensor.moved < 0 ? '−' : '+'}${fmt(sensor.moved)}°`;
+        sensorNeedle.style.transform = `rotate(${sensor.moved}deg)`;
+
+        const span = Math.min(49, Math.abs(sensor.moved) / Math.max(Math.abs(sensor.target), 1) * 45);
+        sensorProgress.style.width = `${span}%`;
+        sensorProgress.style.left = sensor.moved < 0 ? `${50 - span}%` : '50%';
+
+        const error = normalize180(sensor.target - sensor.moved);
+        const aligned = state.lineVisible && Math.abs(error) <= 1.5;
+        if (sensor.active && aligned) {
+          sensorStatus.textContent = 'Alinhado — mantenha esta posição';
+          sensorStatus.className = 'sensor-status aligned';
+          if (!sensor.aligned && navigator.vibrate) navigator.vibrate([70, 40, 70]);
+        } else if (sensor.active) {
+          sensorStatus.textContent = sensor.validRateCount ? 'Medindo giro relativo' : 'Aguardando dados do giroscópio…';
+          sensorStatus.className = 'sensor-status running';
+        }
+        sensor.aligned = aligned;
+      }
+
+      function stopSensor(message = 'Sensor parado') {
+        const sensor = state.sensor;
+        window.removeEventListener('devicemotion', handleMotion);
+        if (sensor.timeout) clearTimeout(sensor.timeout);
+        sensor.timeout = null;
+        sensor.active = false;
+        sensor.lastTime = null;
+        sensorStart.textContent = 'Zerar e iniciar';
+        sensorStop.disabled = true;
+        sensorStatus.textContent = message;
+        sensorStatus.className = 'sensor-status';
+      }
+
+      function handleMotion(event) {
+        const sensor = state.sensor;
+        if (!sensor.active) return;
+        sensor.eventCount += 1;
+
+        const gravity = event.accelerationIncludingGravity;
+        if (gravity && [gravity.x, gravity.y, gravity.z].every(Number.isFinite)) {
+          const magnitude = Math.hypot(gravity.x, gravity.y, gravity.z) || 1;
+          const flatness = Math.abs(gravity.z) / magnitude;
+          const level = flatness >= 0.82;
+          levelStatus.textContent = level ? 'Celular nivelado' : 'Nivele a tela para cima';
+          levelStatus.style.color = level ? '#8ceab4' : '#f0bd72';
+          if (!level) {
+            sensor.lastTime = event.timeStamp;
+            sensorStatus.textContent = 'Medição pausada: celular inclinado';
+            sensorStatus.className = 'sensor-status warning';
+            return;
+          }
+        }
+
+        const rate = event.rotationRate && Number(event.rotationRate.alpha);
+        const now = Number(event.timeStamp) || performance.now();
+        if (sensor.lastTime === null) {
+          sensor.lastTime = now;
+          updateSensorDisplay();
+          return;
+        }
+        const dt = Math.max(0, Math.min(0.2, (now - sensor.lastTime) / 1000));
+        sensor.lastTime = now;
+        if (Number.isFinite(rate)) {
+          sensor.validRateCount += 1;
+          const filteredRate = Math.abs(rate) < 0.12 ? 0 : rate;
+          sensor.moved = normalize180(sensor.moved + filteredRate * dt * sensor.inversion);
+        }
+        updateSensorDisplay();
+      }
+
+      async function startSensor() {
+        if (!state.lineVisible) return;
+        if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+          sensorStatus.textContent = 'Os sensores exigem que o app seja aberto por HTTPS';
+          sensorStatus.className = 'sensor-status warning';
+          return;
+        }
+        if (typeof DeviceMotionEvent === 'undefined') {
+          sensorStatus.textContent = 'Este navegador não disponibiliza sensores de movimento';
+          sensorStatus.className = 'sensor-status warning';
+          return;
+        }
+        try {
+          if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission !== 'granted') {
+              sensorStatus.textContent = 'Permissão de movimento não concedida';
+              sensorStatus.className = 'sensor-status warning';
+              return;
+            }
+          }
+        } catch (_) {
+          sensorStatus.textContent = 'Não foi possível obter acesso aos sensores';
+          sensorStatus.className = 'sensor-status warning';
+          return;
+        }
+
+        stopSensor();
+        const sensor = state.sensor;
+        sensor.active = true;
+        sensor.moved = 0;
+        sensor.lastTime = null;
+        sensor.eventCount = 0;
+        sensor.validRateCount = 0;
+        sensor.aligned = false;
+        sensorStart.textContent = 'Zerar novamente';
+        sensorStop.disabled = false;
+        window.addEventListener('devicemotion', handleMotion, { passive: true });
+        sensor.timeout = setTimeout(() => {
+          if (sensor.active && sensor.validRateCount === 0) {
+            sensorStatus.textContent = sensor.eventCount ? 'O navegador não forneceu leitura do giroscópio' : 'Nenhum dado recebido — verifique a permissão do navegador';
+            sensorStatus.className = 'sensor-status warning';
+          }
+        }, 1800);
+        updateSensorDisplay();
+      }
+
+      function centerPx() {
+        return { x: state.center.x * state.width, y: state.center.y * state.height };
+      }
+
+      function maxLineLength() {
+        return Math.max(100, Math.min(state.width, state.height) * 0.43);
+      }
+
+      function endpoint() {
+        const c = centerPx();
+        const length = maxLineLength() * state.length;
+        const angle = radians(state.bearing);
+        return { x: c.x + Math.sin(angle) * length, y: c.y - Math.cos(angle) * length };
+      }
+
+      function pointer(event) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      }
+
+      function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+      function updateCompassRadius() {
+        state.compassRadius = Math.max(46, state.baseCompassRadius * state.compassScale);
+      }
+
+      function clampPan() {
+        const maxX = Math.max(0, (state.zoom - 1) * state.width / 2);
+        const maxY = Math.max(0, (state.zoom - 1) * state.height / 2);
+        state.pan.x = Math.max(-maxX, Math.min(maxX, state.pan.x));
+        state.pan.y = Math.max(-maxY, Math.min(maxY, state.pan.y));
+      }
+
+      function setZoom(value, anchor = { x: state.width / 2, y: state.height / 2 }) {
+        const previous = state.zoom;
+        const next = Math.max(1, Math.min(8, Number(value) || 1));
+        if (Math.abs(next - previous) < 0.0001) return;
+        const oldCenter = { x: state.width / 2 + state.pan.x, y: state.height / 2 + state.pan.y };
+        const ratio = next / previous;
+        const newCenter = {
+          x: anchor.x + (oldCenter.x - anchor.x) * ratio,
+          y: anchor.y + (oldCenter.y - anchor.y) * ratio
+        };
+        state.zoom = next;
+        state.pan.x = newCenter.x - state.width / 2;
+        state.pan.y = newCenter.y - state.height / 2;
+        clampPan();
+        zoomOutput.value = `${Math.round(state.zoom * 100)}%`;
+        draw();
+      }
+
+      function resetZoom() {
+        state.zoom = 1;
+        state.pan = { x: 0, y: 0 };
+        zoomOutput.value = '100%';
+        draw();
+      }
+
+      function drawZoomedBackground() {
+        ctx.save();
+        ctx.translate(state.width / 2 + state.pan.x, state.height / 2 + state.pan.y);
+        ctx.scale(state.zoom, state.zoom);
+        ctx.translate(-state.width / 2, -state.height / 2);
+        drawBackground();
+        ctx.restore();
+      }
+
+      function resize() {
+        const rect = stage.getBoundingClientRect();
+        state.width = Math.max(1, rect.width);
+        state.height = Math.max(1, rect.height);
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(state.width * state.dpr);
+        canvas.height = Math.round(state.height * state.dpr);
+        canvas.style.width = state.width + 'px';
+        canvas.style.height = state.height + 'px';
+        state.baseCompassRadius = Math.max(92, Math.min(185, Math.min(state.width, state.height) * 0.31));
+        updateCompassRadius();
+        clampPan();
+        draw();
+      }
+
+      function drawBackground() {
+        const w = state.width;
+        const h = state.height;
+        if (state.image) {
+          const scale = Math.min(w / state.image.width, h / state.image.height);
+          const iw = state.image.width * scale;
+          const ih = state.image.height * scale;
+          const x = (w - iw) / 2;
+          const y = (h - ih) / 2;
+          ctx.fillStyle = '#020507';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(state.image, x, y, iw, ih);
+          return;
+        }
+
+        ctx.fillStyle = '#07111a';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(97, 130, 149, .13)';
+        ctx.lineWidth = 1;
+        const grid = 44;
+        for (let x = 0; x <= w; x += grid) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 0; y <= h; y += grid) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+        const seed = [[.12,.18,1.2],[.2,.64,.8],[.28,.31,1],[.36,.78,1.4],[.47,.14,.7],[.53,.47,1.1],[.63,.24,.8],[.72,.69,1.3],[.81,.34,.9],[.9,.18,1.1],[.93,.72,.7],[.15,.84,.9]];
+        ctx.fillStyle = 'rgba(205, 230, 242, .65)';
+        for (const [x, y, r] of seed) { ctx.beginPath(); ctx.arc(x*w, y*h, r, 0, Math.PI*2); ctx.fill(); }
+        if (w > 520) {
+          ctx.fillStyle = 'rgba(203, 220, 229, .72)';
+          ctx.textAlign = 'center';
+          ctx.font = '600 18px Inter, sans-serif';
+          ctx.fillText('Carregue uma imagem para começar', w / 2, Math.max(45, h * .16));
+          ctx.fillStyle = 'rgba(156, 170, 180, .8)';
+          ctx.font = '13px Inter, sans-serif';
+          ctx.fillText('A bússola e a linha podem ser ajustadas agora mesmo', w / 2, Math.max(69, h * .16 + 24));
+        }
+      }
+
+      function drawCompass() {
+        const c = centerPx();
+        const r = state.compassRadius;
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(radians(state.rotation));
+
+        ctx.strokeStyle = 'rgba(240, 184, 84, .72)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, r - 8, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(240, 184, 84, .22)'; ctx.stroke();
+
+        for (let deg = 0; deg < 360; deg += 5) {
+          const major = deg % 30 === 0;
+          const a = radians(deg);
+          const outer = r - 2;
+          const inner = r - (major ? 15 : deg % 10 === 0 ? 10 : 6);
+          ctx.beginPath();
+          ctx.moveTo(Math.sin(a) * inner, -Math.cos(a) * inner);
+          ctx.lineTo(Math.sin(a) * outer, -Math.cos(a) * outer);
+          ctx.strokeStyle = major ? 'rgba(240,184,84,.75)' : 'rgba(240,184,84,.32)';
+          ctx.lineWidth = major ? 1.1 : .7;
+          ctx.stroke();
+        }
+
+        ctx.lineWidth = 1.4;
+        for (let deg = 0; deg < 360; deg += 90) {
+          const a = radians(deg);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.sin(a) * (r - 18), -Math.cos(a) * (r - 18));
+          ctx.strokeStyle = deg === 180 ? '#ff8b18' : 'rgba(240,184,84,.72)';
+          ctx.lineWidth = deg === 180 ? 2.6 : 1.2;
+          ctx.stroke();
+        }
+
+        const cardinals = [['N',0],['L',90],['S',180],['O',270]];
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `700 ${Math.max(18, r*.14)}px Georgia, serif`;
+        for (const [label, deg] of cardinals) {
+          const a = radians(deg);
+          ctx.save();
+          ctx.translate(Math.sin(a) * (r + 20), -Math.cos(a) * (r + 20));
+          ctx.rotate(-radians(state.rotation));
+          ctx.fillStyle = label === 'S' ? '#ff8b18' : '#f0b854';
+          ctx.fillText(label, 0, 0);
+          ctx.restore();
+        }
+
+        // rotation handle
+        ctx.beginPath();
+        ctx.moveTo(0, -r - 39);
+        ctx.lineTo(8, -r - 31);
+        ctx.lineTo(0, -r - 23);
+        ctx.lineTo(-8, -r - 31);
+        ctx.closePath();
+        ctx.fillStyle = '#f0b854';
+        ctx.fill();
+        ctx.strokeStyle = '#081018';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        // center handle stays upright
+        ctx.beginPath(); ctx.arc(c.x, c.y, 9, 0, Math.PI * 2); ctx.fillStyle = '#09212a'; ctx.fill();
+        ctx.strokeStyle = '#37d5f5'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(c.x, c.y, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#f0b854'; ctx.fill();
+      }
+
+      function drawArcAndLine() {
+        if (!state.lineVisible) return;
+        const c = centerPx();
+        const e = endpoint();
+        const south = normalize360(state.rotation + 180);
+        const delta = normalize180(state.bearing - south);
+
+        ctx.save();
+        ctx.strokeStyle = '#37d5f5';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = 'rgba(55, 213, 245, .45)';
+        ctx.shadowBlur = 7;
+        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        const arcRadius = Math.min(62, state.compassRadius * .38);
+        const start = radians(south - 90);
+        const end = radians(state.bearing - 90);
+        ctx.strokeStyle = '#37d5f5';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, arcRadius, start, end, delta < 0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath(); ctx.arc(e.x, e.y, 9, 0, Math.PI*2); ctx.fillStyle = '#0a2c36'; ctx.fill();
+        ctx.strokeStyle = '#37d5f5'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(e.x, e.y, 3, 0, Math.PI*2); ctx.fillStyle = '#37d5f5'; ctx.fill();
+
+        const midBearing = normalize360(south + delta / 2);
+        const labelRadius = arcRadius + 22;
+        const labelX = c.x + Math.sin(radians(midBearing)) * labelRadius;
+        const labelY = c.y - Math.cos(radians(midBearing)) * labelRadius;
+        ctx.font = '700 14px Inter, sans-serif';
+        ctx.textAlign = delta < 0 ? 'left' : 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#53dcf7';
+        ctx.fillText(fmt(delta) + '°', labelX + (delta < 0 ? 5 : -5), labelY);
+        ctx.restore();
+      }
+
+      function draw() {
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        ctx.clearRect(0, 0, state.width, state.height);
+        drawZoomedBackground();
+        drawCompass();
+        drawArcAndLine();
+      }
+
+      function updateResult() {
+        if (!state.lineVisible) {
+          resultValue.textContent = 'Nenhuma linha desenhada';
+          resultExplanation.textContent = 'Desenhe uma linha para calcular o deslocamento em relação ao Sul.';
+          updateSensorDisplay();
+          return;
+        }
+        const south = normalize360(state.rotation + 180);
+        const delta = normalize180(state.bearing - south);
+        const amount = Math.abs(delta);
+        let phrase;
+        let explanation;
+        if (amount < 0.05) {
+          phrase = 'Alinhado com o Sul';
+          explanation = 'A linha do telescópio coincide com a direção Sul indicada pela bússola.';
+        } else {
+          const side = delta < 0 ? 'leste' : 'oeste';
+          phrase = `${fmt(amount)}° a ${side} do Sul`;
+          explanation = `A linha do telescópio está ${fmt(amount)}° a ${side} da direção Sul indicada pela bússola.`;
+        }
+        resultValue.textContent = phrase;
+        resultExplanation.textContent = explanation;
+        updateSensorDisplay();
+      }
+
+      function setRotation(value) {
+        if (state.sensor.active) stopSensor('Referência alterada — zere novamente');
+        state.rotation = Math.max(-180, Math.min(180, Number(value) || 0));
+        rotationRange.value = state.rotation;
+        rotationNumber.value = state.rotation.toFixed(1).replace(/\.0$/, '');
+        updateResult();
+        draw();
+      }
+
+      function setBearing(value) {
+        if (state.sensor.active) stopSensor('Referência alterada — zere novamente');
+        state.bearing = normalize360(Number(value) || 0);
+        lineRange.value = state.bearing;
+        lineBearing.value = state.bearing.toFixed(1).replace(/\.0$/, '');
+        state.lineVisible = true;
+        updateResult();
+        draw();
+      }
+
+      function setLineFromPoint(point) {
+        const c = centerPx();
+        const dx = point.x - c.x;
+        const dy = point.y - c.y;
+        if (Math.hypot(dx, dy) < 8) return;
+        if (state.sensor.active) stopSensor('Referência alterada — zere novamente');
+        state.bearing = normalize360(degrees(Math.atan2(dx, -dy)));
+        state.length = Math.max(.2, Math.min(.9, Math.hypot(dx, dy) / maxLineLength()));
+        lineRange.value = state.bearing;
+        lineBearing.value = state.bearing.toFixed(1);
+        lengthRange.value = Math.round(state.length * 100);
+        lengthOutput.value = Math.round(state.length * 100) + '%';
+        state.lineVisible = true;
+        updateResult();
+        draw();
+      }
+
+      rotationRange.addEventListener('input', e => setRotation(e.target.value));
+      rotationNumber.addEventListener('input', e => setRotation(e.target.value));
+      lineRange.addEventListener('input', e => setBearing(e.target.value));
+      lineBearing.addEventListener('input', e => setBearing(e.target.value));
+      lengthRange.addEventListener('input', e => {
+        state.length = Number(e.target.value) / 100;
+        lengthOutput.value = e.target.value + '%';
+        state.lineVisible = true;
+        updateResult();
+        draw();
+      });
+      compassSizeRange.addEventListener('input', e => {
+        state.compassScale = Number(e.target.value) / 100;
+        compassSizeOutput.value = `${e.target.value}%`;
+        updateCompassRadius();
+        draw();
+      });
+      zoomOut.addEventListener('click', () => setZoom(state.zoom / 1.25));
+      zoomIn.addEventListener('click', () => setZoom(state.zoom * 1.25));
+      zoomReset.addEventListener('click', resetZoom);
+
+      sensorStart.addEventListener('click', startSensor);
+      sensorStop.addEventListener('click', () => stopSensor());
+      sensorInvert.addEventListener('click', () => {
+        state.sensor.inversion *= -1;
+        state.sensor.moved *= -1;
+        sensorInvert.textContent = state.sensor.inversion === -1 ? 'Inverter sentido' : 'Sentido invertido';
+        updateSensorDisplay();
+      });
+
+      drawButton.addEventListener('click', () => {
+        state.drawMode = !state.drawMode;
+        drawButton.classList.toggle('active', state.drawMode);
+        drawButton.textContent = state.drawMode ? 'Clique na imagem…' : 'Desenhar linha';
+        canvasHint.textContent = state.drawMode ? 'Clique ou arraste até a direção do eixo do telescópio' : 'Roda ou pinça: zoom · arraste o fundo: mover · losango âmbar: girar';
+      });
+
+      clearButton.addEventListener('click', () => {
+        if (state.sensor.active) stopSensor('Linha removida');
+        state.lineVisible = false;
+        state.drawMode = false;
+        drawButton.classList.remove('active');
+        drawButton.textContent = 'Desenhar linha';
+        updateResult();
+        draw();
+      });
+
+      centerButton.addEventListener('click', () => {
+        state.center = { x: .5, y: .5 };
+        draw();
+      });
+
+      stage.addEventListener('wheel', event => {
+        event.preventDefault();
+        const p = pointer(event);
+        const factor = Math.exp(-event.deltaY * 0.0015);
+        setZoom(state.zoom * factor, p);
+      }, { passive: false });
+
+      imageInput.addEventListener('change', event => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (state.imageUrl) URL.revokeObjectURL(state.imageUrl);
+        state.imageUrl = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          state.image = image;
+          imageStatus.textContent = `${file.name} · ${image.width}×${image.height}`;
+          resetZoom();
+        };
+        image.onerror = () => { imageStatus.textContent = 'Não foi possível abrir a imagem'; };
+        image.src = state.imageUrl;
+      });
+
+      stage.addEventListener('pointerdown', event => {
+        const p = pointer(event);
+        state.pointers.set(event.pointerId, p);
+        stage.setPointerCapture(event.pointerId);
+        if (state.pointers.size >= 2) {
+          const points = Array.from(state.pointers.values()).slice(0, 2);
+          state.pinch = {
+            distance: Math.max(1, distance(points[0], points[1])),
+            midpoint: { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 }
+          };
+          state.drag = null;
+          state.dragPoint = null;
+          state.drawMode = false;
+          drawButton.classList.remove('active');
+          drawButton.textContent = 'Desenhar linha';
+          canvasHint.textContent = 'Roda ou pinça: zoom · arraste o fundo: mover · losango âmbar: girar';
+          event.preventDefault();
+          return;
+        }
+        const c = centerPx();
+        const e = endpoint();
+        const rotationHandleAngle = radians(state.rotation);
+        const rotationHandle = {
+          x: c.x + Math.sin(rotationHandleAngle) * (state.compassRadius + 31),
+          y: c.y - Math.cos(rotationHandleAngle) * (state.compassRadius + 31)
+        };
+
+        if (state.drawMode) {
+          state.drag = 'line';
+          setLineFromPoint(p);
+        } else if (state.lineVisible && distance(p, e) < 24) {
+          state.drag = 'line';
+        } else if (distance(p, rotationHandle) < 25) {
+          state.drag = 'rotate';
+        } else if (distance(p, c) < 24) {
+          state.drag = 'center';
+        } else if (distance(p, c) < state.compassRadius - 24) {
+          state.drag = 'center';
+        } else {
+          state.drag = 'pan';
+        }
+        state.dragPoint = p;
+        event.preventDefault();
+      });
+
+      stage.addEventListener('pointermove', event => {
+        if (state.pointers.has(event.pointerId)) state.pointers.set(event.pointerId, pointer(event));
+        if (state.pinch && state.pointers.size >= 2) {
+          const points = Array.from(state.pointers.values()).slice(0, 2);
+          const nextDistance = Math.max(1, distance(points[0], points[1]));
+          const nextMidpoint = { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 };
+          setZoom(state.zoom * nextDistance / state.pinch.distance, state.pinch.midpoint);
+          state.pan.x += nextMidpoint.x - state.pinch.midpoint.x;
+          state.pan.y += nextMidpoint.y - state.pinch.midpoint.y;
+          clampPan();
+          state.pinch = { distance: nextDistance, midpoint: nextMidpoint };
+          draw();
+          event.preventDefault();
+          return;
+        }
+        if (!state.drag) return;
+        const p = pointer(event);
+        const c = centerPx();
+        if (state.drag === 'line') {
+          setLineFromPoint(p);
+        } else if (state.drag === 'rotate') {
+          setRotation(normalize180(degrees(Math.atan2(p.x - c.x, -(p.y - c.y)))));
+        } else if (state.drag === 'center') {
+          const margin = Math.min(55, state.compassRadius * .35);
+          state.center.x = Math.max(margin / state.width, Math.min(1 - margin / state.width, p.x / state.width));
+          state.center.y = Math.max(margin / state.height, Math.min(1 - margin / state.height, p.y / state.height));
+          draw();
+        } else if (state.drag === 'pan' && state.dragPoint) {
+          state.pan.x += p.x - state.dragPoint.x;
+          state.pan.y += p.y - state.dragPoint.y;
+          clampPan();
+          state.dragPoint = p;
+          draw();
+        }
+      });
+
+      function endPointer(event) {
+        const wasPinching = Boolean(state.pinch);
+        state.pointers.delete(event.pointerId);
+        if (state.pointers.size < 2) state.pinch = null;
+        try { stage.releasePointerCapture(event.pointerId); } catch (_) {}
+        if (wasPinching) {
+          state.drag = null;
+          state.dragPoint = null;
+          return;
+        }
+        if (!state.drag) return;
+        state.drag = null;
+        state.dragPoint = null;
+        state.drawMode = false;
+        drawButton.classList.remove('active');
+        drawButton.textContent = 'Desenhar linha';
+        canvasHint.textContent = 'Roda ou pinça: zoom · arraste o fundo: mover · losango âmbar: girar';
+      }
+
+      stage.addEventListener('pointerup', endPointer);
+      stage.addEventListener('pointercancel', endPointer);
+      window.addEventListener('pagehide', () => stopSensor());
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+      new ResizeObserver(resize).observe(stage);
+      initializeCollapsiblePanels();
+      updateResult();
+      resize();
+    })();
+  </script>
+</body>
+</html>
