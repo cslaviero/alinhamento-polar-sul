@@ -1,4 +1,4 @@
-const CACHE = 'alinhamento-polar-sul-v6';
+const CACHE = 'alinhamento-polar-sul-v7';
 const ASSETS = [
   './',
   './alinhamento-polar-sul.html',

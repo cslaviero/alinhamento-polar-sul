@@ -560,6 +560,89 @@
 
     .guide li + li { margin-top: 7px; }
 
+    .dev-panel {
+      border-color: #9a6e2a;
+      background: #12120d;
+    }
+
+    .dev-badge {
+      display: inline-block;
+      margin-left: 7px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: #171006;
+      background: var(--amber);
+      font: 700 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      vertical-align: 2px;
+    }
+
+    .dev-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .dev-actions .button:first-child {
+      grid-column: 1 / -1;
+    }
+
+    .dev-status {
+      margin: 0 0 12px;
+      padding: 8px 9px;
+      border: 1px solid #544529;
+      border-radius: 7px;
+      color: #e5c88f;
+      background: #17150f;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .dev-section-title {
+      margin: 16px 0 7px;
+      color: var(--amber);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .dev-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0;
+      margin: 0;
+      border: 1px solid #34372f;
+      border-radius: 8px;
+      overflow: hidden;
+      font: 11px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .dev-grid dt,
+    .dev-grid dd {
+      margin: 0;
+      padding: 6px 8px;
+      border-bottom: 1px solid #2a2e28;
+    }
+
+    .dev-grid dt { color: #aeb7ae; }
+    .dev-grid dd {
+      color: #f1f5ef;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .dev-grid dt:last-of-type,
+    .dev-grid dd:last-of-type { border-bottom: 0; }
+
+    .dev-note {
+      margin: 12px 0 0;
+      color: #afa98f;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
     footer {
       display: flex;
       align-items: center;
@@ -739,6 +822,62 @@
             <li>Apoie o celular no telescópio, toque em “Zerar e iniciar” e gire até o indicador ficar verde.</li>
           </ol>
         </section>
+
+        <section class="panel dev-panel" id="devPanel" hidden>
+          <h2>Dados dos sensores <span class="dev-badge">DEV</span></h2>
+          <div class="dev-actions">
+            <button class="button primary" id="devEnable" type="button">Ativar sensores</button>
+            <button class="button" id="devZero" type="button">Zerar deltas</button>
+            <button class="button" id="devFreeze" type="button">Pausar tela</button>
+          </div>
+          <p class="dev-status" id="devStatus">Aguardando ativação. No iPhone, toque no botão para conceder permissão.</p>
+
+          <h3 class="dev-section-title">Ambiente</h3>
+          <dl class="dev-grid">
+            <dt>Contexto seguro</dt><dd id="devSecure">—</dd>
+            <dt>Tela</dt><dd id="devScreen">—</dd>
+            <dt>DeviceMotion</dt><dd id="devMotionSupport">—</dd>
+            <dt>DeviceOrientation</dt><dd id="devOrientationSupport">—</dd>
+          </dl>
+
+          <h3 class="dev-section-title">DeviceMotion — valores brutos</h3>
+          <dl class="dev-grid">
+            <dt>eventos</dt><dd id="devMotionCount">0</dd>
+            <dt>interval</dt><dd id="devMotionInterval">—</dd>
+            <dt>rotationRate.alpha</dt><dd id="devRateAlpha">—</dd>
+            <dt>rotationRate.beta</dt><dd id="devRateBeta">—</dd>
+            <dt>rotationRate.gamma</dt><dd id="devRateGamma">—</dd>
+            <dt>acceleration x/y/z</dt><dd id="devAccel">—</dd>
+            <dt>gravity x/y/z</dt><dd id="devGravity">—</dd>
+          </dl>
+
+          <h3 class="dev-section-title">Giroscópio integrado desde zero</h3>
+          <dl class="dev-grid">
+            <dt>∫ alpha</dt><dd id="devIntegralAlpha">0,00°</dd>
+            <dt>∫ beta</dt><dd id="devIntegralBeta">0,00°</dd>
+            <dt>∫ gamma</dt><dd id="devIntegralGamma">0,00°</dd>
+          </dl>
+
+          <h3 class="dev-section-title">DeviceOrientation — valores brutos</h3>
+          <dl class="dev-grid">
+            <dt>eventos</dt><dd id="devOrientationCount">0</dd>
+            <dt>alpha</dt><dd id="devOrientationAlpha">—</dd>
+            <dt>beta</dt><dd id="devOrientationBeta">—</dd>
+            <dt>gamma</dt><dd id="devOrientationGamma">—</dd>
+            <dt>absolute</dt><dd id="devOrientationAbsolute">—</dd>
+            <dt>webkitCompassHeading</dt><dd id="devCompass">—</dd>
+            <dt>webkitCompassAccuracy</dt><dd id="devCompassAccuracy">—</dd>
+          </dl>
+
+          <h3 class="dev-section-title">Deltas de orientação desde zero</h3>
+          <dl class="dev-grid">
+            <dt>Δ alpha</dt><dd id="devDeltaAlpha">—</dd>
+            <dt>Δ beta</dt><dd id="devDeltaBeta">—</dd>
+            <dt>Δ gamma</dt><dd id="devDeltaGamma">—</dd>
+            <dt>Δ compass</dt><dd id="devDeltaCompass">—</dd>
+          </dl>
+          <p class="dev-note">O alinhamento normal usa atualmente <strong>−∫ rotationRate.alpha</strong>. Gire o telefone aproximadamente 30° e observe qual integral ou delta acompanha melhor esse movimento.</p>
+        </section>
       </aside>
     </main>
 
@@ -780,6 +919,18 @@
       const sensorStop = document.getElementById('sensorStop');
       const sensorInvert = document.getElementById('sensorInvert');
       const levelStatus = document.getElementById('levelStatus');
+      const devMode = new URLSearchParams(location.search).get('dev') === '1';
+      const devPanel = document.getElementById('devPanel');
+      const devElements = {};
+      [
+        'devEnable', 'devZero', 'devFreeze', 'devStatus', 'devSecure', 'devScreen',
+        'devMotionSupport', 'devOrientationSupport', 'devMotionCount', 'devMotionInterval',
+        'devRateAlpha', 'devRateBeta', 'devRateGamma', 'devAccel', 'devGravity',
+        'devIntegralAlpha', 'devIntegralBeta', 'devIntegralGamma', 'devOrientationCount',
+        'devOrientationAlpha', 'devOrientationBeta', 'devOrientationGamma',
+        'devOrientationAbsolute', 'devCompass', 'devCompassAccuracy', 'devDeltaAlpha',
+        'devDeltaBeta', 'devDeltaGamma', 'devDeltaCompass'
+      ].forEach(id => { devElements[id] = document.getElementById(id); });
 
       const state = {
         width: 0,
@@ -812,6 +963,22 @@
           validRateCount: 0,
           aligned: false,
           timeout: null
+        },
+        dev: {
+          enabled: false,
+          frozen: false,
+          status: 'Aguardando ativação. No iPhone, toque no botão para conceder permissão.',
+          motionCount: 0,
+          orientationCount: 0,
+          lastMotionTime: null,
+          lastRenderTime: 0,
+          interval: null,
+          rate: { alpha: null, beta: null, gamma: null },
+          acceleration: { x: null, y: null, z: null },
+          gravity: { x: null, y: null, z: null },
+          integral: { alpha: 0, beta: 0, gamma: 0 },
+          orientation: { alpha: null, beta: null, gamma: null, absolute: null, compass: null, accuracy: null },
+          zero: { alpha: null, beta: null, gamma: null, compass: null }
         }
       };
 
@@ -877,6 +1044,187 @@
           heading.append(headingTitle, toggle);
           panel.append(heading, content);
         });
+      }
+
+      function finiteSensorValue(value) {
+        if (value === null || value === undefined || value === '') return null;
+        const number = Number(value);
+        return Number.isFinite(number) ? number : null;
+      }
+
+      function devFormat(value, suffix = '°') {
+        if (!Number.isFinite(value)) return '—';
+        return `${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${suffix}`;
+      }
+
+      function devVector(vector) {
+        return [vector.x, vector.y, vector.z]
+          .map(value => Number.isFinite(value) ? value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—')
+          .join(' / ');
+      }
+
+      function devDelta(current, zero) {
+        if (!Number.isFinite(current) || !Number.isFinite(zero)) return null;
+        return normalize180(current - zero);
+      }
+
+      function setDevText(id, value) {
+        if (devElements[id]) devElements[id].textContent = value;
+      }
+
+      function renderDev(force = false) {
+        if (!devMode || state.dev.frozen) return;
+        const now = performance.now();
+        if (!force && now - state.dev.lastRenderTime < 90) return;
+        state.dev.lastRenderTime = now;
+        const dev = state.dev;
+        const orientation = screen.orientation;
+        const screenAngle = Number.isFinite(orientation && orientation.angle) ? orientation.angle : finiteSensorValue(window.orientation);
+        const screenType = orientation && orientation.type ? orientation.type : 'desconhecida';
+
+        setDevText('devStatus', dev.status);
+        setDevText('devSecure', window.isSecureContext ? 'sim' : 'não');
+        setDevText('devScreen', `${screenType} / ${Number.isFinite(screenAngle) ? screenAngle + '°' : '—'}`);
+        setDevText('devMotionSupport', typeof DeviceMotionEvent === 'undefined' ? 'indisponível' : 'disponível');
+        setDevText('devOrientationSupport', typeof DeviceOrientationEvent === 'undefined' ? 'indisponível' : 'disponível');
+        setDevText('devMotionCount', String(dev.motionCount));
+        setDevText('devMotionInterval', devFormat(dev.interval, ' ms'));
+        setDevText('devRateAlpha', devFormat(dev.rate.alpha, ' °/s'));
+        setDevText('devRateBeta', devFormat(dev.rate.beta, ' °/s'));
+        setDevText('devRateGamma', devFormat(dev.rate.gamma, ' °/s'));
+        setDevText('devAccel', devVector(dev.acceleration));
+        setDevText('devGravity', devVector(dev.gravity));
+        setDevText('devIntegralAlpha', devFormat(dev.integral.alpha));
+        setDevText('devIntegralBeta', devFormat(dev.integral.beta));
+        setDevText('devIntegralGamma', devFormat(dev.integral.gamma));
+        setDevText('devOrientationCount', String(dev.orientationCount));
+        setDevText('devOrientationAlpha', devFormat(dev.orientation.alpha));
+        setDevText('devOrientationBeta', devFormat(dev.orientation.beta));
+        setDevText('devOrientationGamma', devFormat(dev.orientation.gamma));
+        setDevText('devOrientationAbsolute', dev.orientation.absolute === null ? '—' : String(dev.orientation.absolute));
+        setDevText('devCompass', devFormat(dev.orientation.compass));
+        setDevText('devCompassAccuracy', devFormat(dev.orientation.accuracy));
+        setDevText('devDeltaAlpha', devFormat(devDelta(dev.orientation.alpha, dev.zero.alpha)));
+        setDevText('devDeltaBeta', devFormat(devDelta(dev.orientation.beta, dev.zero.beta)));
+        setDevText('devDeltaGamma', devFormat(devDelta(dev.orientation.gamma, dev.zero.gamma)));
+        setDevText('devDeltaCompass', devFormat(devDelta(dev.orientation.compass, dev.zero.compass)));
+      }
+
+      function zeroDevReferences() {
+        const dev = state.dev;
+        dev.integral = { alpha: 0, beta: 0, gamma: 0 };
+        dev.lastMotionTime = null;
+        dev.zero = {
+          alpha: dev.orientation.alpha,
+          beta: dev.orientation.beta,
+          gamma: dev.orientation.gamma,
+          compass: dev.orientation.compass
+        };
+        dev.status = 'Referências zeradas. Faça um giro conhecido e compare os deltas.';
+        renderDev(true);
+      }
+
+      function handleDevMotion(event) {
+        const dev = state.dev;
+        dev.motionCount += 1;
+        dev.interval = finiteSensorValue(event.interval);
+        dev.rate = {
+          alpha: finiteSensorValue(event.rotationRate && event.rotationRate.alpha),
+          beta: finiteSensorValue(event.rotationRate && event.rotationRate.beta),
+          gamma: finiteSensorValue(event.rotationRate && event.rotationRate.gamma)
+        };
+        dev.acceleration = {
+          x: finiteSensorValue(event.acceleration && event.acceleration.x),
+          y: finiteSensorValue(event.acceleration && event.acceleration.y),
+          z: finiteSensorValue(event.acceleration && event.acceleration.z)
+        };
+        dev.gravity = {
+          x: finiteSensorValue(event.accelerationIncludingGravity && event.accelerationIncludingGravity.x),
+          y: finiteSensorValue(event.accelerationIncludingGravity && event.accelerationIncludingGravity.y),
+          z: finiteSensorValue(event.accelerationIncludingGravity && event.accelerationIncludingGravity.z)
+        };
+
+        const timestamp = finiteSensorValue(event.timeStamp) ?? performance.now();
+        if (dev.lastMotionTime !== null) {
+          const dt = Math.max(0, Math.min(0.2, (timestamp - dev.lastMotionTime) / 1000));
+          ['alpha', 'beta', 'gamma'].forEach(axis => {
+            if (Number.isFinite(dev.rate[axis])) dev.integral[axis] += dev.rate[axis] * dt;
+          });
+        }
+        dev.lastMotionTime = timestamp;
+        dev.status = 'Recebendo dados. A tela atualiza até 10 vezes por segundo.';
+        renderDev();
+      }
+
+      function handleDevOrientation(event) {
+        const dev = state.dev;
+        dev.orientationCount += 1;
+        dev.orientation = {
+          alpha: finiteSensorValue(event.alpha),
+          beta: finiteSensorValue(event.beta),
+          gamma: finiteSensorValue(event.gamma),
+          absolute: typeof event.absolute === 'boolean' ? event.absolute : null,
+          compass: finiteSensorValue(event.webkitCompassHeading),
+          accuracy: finiteSensorValue(event.webkitCompassAccuracy)
+        };
+        if (dev.zero.alpha === null && dev.zero.beta === null && dev.zero.gamma === null) {
+          dev.zero.alpha = dev.orientation.alpha;
+          dev.zero.beta = dev.orientation.beta;
+          dev.zero.gamma = dev.orientation.gamma;
+          dev.zero.compass = dev.orientation.compass;
+        }
+        dev.status = 'Recebendo dados. A tela atualiza até 10 vezes por segundo.';
+        renderDev();
+      }
+
+      async function enableDevSensors() {
+        if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+          state.dev.status = 'Bloqueado: abra por HTTPS para acessar os sensores.';
+          renderDev(true);
+          return;
+        }
+        try {
+          const permissionRequests = [];
+          if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+            permissionRequests.push(DeviceMotionEvent.requestPermission());
+          }
+          if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            permissionRequests.push(DeviceOrientationEvent.requestPermission());
+          }
+          const permissions = await Promise.all(permissionRequests);
+          if (permissions.some(permission => permission !== 'granted')) {
+            state.dev.status = 'Permissão de sensores não concedida.';
+            renderDev(true);
+            return;
+          }
+        } catch (_) {
+          state.dev.status = 'Falha ao solicitar permissão dos sensores.';
+          renderDev(true);
+          return;
+        }
+
+        if (!state.dev.enabled) {
+          window.addEventListener('devicemotion', handleDevMotion, { passive: true });
+          window.addEventListener('deviceorientation', handleDevOrientation, { passive: true });
+          state.dev.enabled = true;
+        }
+        state.dev.status = 'Sensores ativados. Zere os deltas antes do teste.';
+        devElements.devEnable.textContent = 'Sensores ativos';
+        zeroDevReferences();
+      }
+
+      function initializeDevMode() {
+        if (!devMode) return;
+        devPanel.hidden = false;
+        devElements.devEnable.addEventListener('click', enableDevSensors);
+        devElements.devZero.addEventListener('click', zeroDevReferences);
+        devElements.devFreeze.addEventListener('click', () => {
+          state.dev.frozen = !state.dev.frozen;
+          devElements.devFreeze.textContent = state.dev.frozen ? 'Retomar tela' : 'Pausar tela';
+          if (!state.dev.frozen) renderDev(true);
+        });
+        window.addEventListener('orientationchange', () => renderDev(true));
+        renderDev(true);
       }
 
       function lineDeltaFromSouth() {
@@ -1493,11 +1841,16 @@
 
       stage.addEventListener('pointerup', endPointer);
       stage.addEventListener('pointercancel', endPointer);
-      window.addEventListener('pagehide', () => stopSensor());
+      window.addEventListener('pagehide', () => {
+        stopSensor();
+        window.removeEventListener('devicemotion', handleDevMotion);
+        window.removeEventListener('deviceorientation', handleDevOrientation);
+      });
       if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
       }
       new ResizeObserver(resize).observe(stage);
+      initializeDevMode();
       initializeCollapsiblePanels();
       updateResult();
       resize();
