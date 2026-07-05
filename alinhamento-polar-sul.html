@@ -876,7 +876,7 @@
             <dt>Δ gamma</dt><dd id="devDeltaGamma">—</dd>
             <dt>Δ compass</dt><dd id="devDeltaCompass">—</dd>
           </dl>
-          <p class="dev-note">O alinhamento normal usa atualmente <strong>Δ gamma (deviceorientation)</strong> em relação ao valor zerado no início da medição. Gire o telefone aproximadamente 30° e observe qual integral ou delta acompanha melhor esse movimento.</p>
+          <p class="dev-note">O alinhamento normal usa atualmente <strong>Δ alpha (deviceorientation)</strong> em relação ao valor zerado no início da medição. Gire o telefone aproximadamente 30° e observe qual integral ou delta acompanha melhor esse movimento.</p>
         </section>
       </aside>
     </main>
@@ -958,7 +958,7 @@
           moved: 0,
           target: 0,
           lastTime: null,
-          zeroGamma: null,
+          zeroAlpha: null,
           inversion: -1,
           eventCount: 0,
           validRateCount: 0,
@@ -1278,7 +1278,7 @@
         sensor.timeout = null;
         sensor.active = false;
         sensor.lastTime = null;
-        sensor.zeroGamma = null;
+        sensor.zeroAlpha = null;
         sensorStart.textContent = 'Zerar e iniciar';
         sensorStop.disabled = true;
         sensorStatus.textContent = message;
@@ -1308,16 +1308,16 @@
       function handleOrientation(event) {
         const sensor = state.sensor;
         if (!sensor.active) return;
-        const gamma = Number(event.gamma);
-        if (!Number.isFinite(gamma)) return;
+        const alpha = Number(event.alpha);
+        if (!Number.isFinite(alpha)) return;
 
-        if (sensor.zeroGamma === null) {
-          sensor.zeroGamma = gamma;
+        if (sensor.zeroAlpha === null) {
+          sensor.zeroAlpha = alpha;
           updateSensorDisplay();
           return;
         }
         sensor.validRateCount += 1;
-        sensor.moved = normalize180((gamma - sensor.zeroGamma) * sensor.inversion);
+        sensor.moved = normalize180((alpha - sensor.zeroAlpha) * sensor.inversion);
         updateSensorDisplay();
       }
 
@@ -1358,7 +1358,7 @@
         sensor.active = true;
         sensor.moved = 0;
         sensor.lastTime = null;
-        sensor.zeroGamma = null;
+        sensor.zeroAlpha = null;
         sensor.eventCount = 0;
         sensor.validRateCount = 0;
         sensor.aligned = false;
