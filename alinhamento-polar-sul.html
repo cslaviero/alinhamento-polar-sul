@@ -876,7 +876,7 @@
             <dt>Δ gamma</dt><dd id="devDeltaGamma">—</dd>
             <dt>Δ compass</dt><dd id="devDeltaCompass">—</dd>
           </dl>
-          <p class="dev-note">O alinhamento normal usa atualmente <strong>−∫ rotationRate.alpha</strong>. Gire o telefone aproximadamente 30° e observe qual integral ou delta acompanha melhor esse movimento.</p>
+          <p class="dev-note">O alinhamento normal usa atualmente <strong>Δ gamma (deviceorientation)</strong> em relação ao valor zerado no início da medição. Gire o telefone aproximadamente 30° e observe qual integral ou delta acompanha melhor esse movimento.</p>
         </section>
       </aside>
     </main>
@@ -958,6 +958,7 @@
           moved: 0,
           target: 0,
           lastTime: null,
+          zeroGamma: null,
           inversion: -1,
           eventCount: 0,
           validRateCount: 0,
@@ -1272,10 +1273,12 @@
       function stopSensor(message = 'Sensor parado') {
         const sensor = state.sensor;
         window.removeEventListener('devicemotion', handleMotion);
+        window.removeEventListener('deviceorientation', handleOrientation);
         if (sensor.timeout) clearTimeout(sensor.timeout);
         sensor.timeout = null;
         sensor.active = false;
         sensor.lastTime = null;
+        sensor.zeroGamma = null;
         sensorStart.textContent = 'Zerar e iniciar';
         sensorStop.disabled = true;
         sensorStatus.textContent = message;
@@ -1295,27 +1298,26 @@
           levelStatus.textContent = level ? 'Celular nivelado' : 'Nivele a tela para cima';
           levelStatus.style.color = level ? '#8ceab4' : '#f0bd72';
           if (!level) {
-            sensor.lastTime = event.timeStamp;
             sensorStatus.textContent = 'Medição pausada: celular inclinado';
             sensorStatus.className = 'sensor-status warning';
             return;
           }
         }
+      }
 
-        const rate = event.rotationRate && Number(event.rotationRate.alpha);
-        const now = Number(event.timeStamp) || performance.now();
-        if (sensor.lastTime === null) {
-          sensor.lastTime = now;
+      function handleOrientation(event) {
+        const sensor = state.sensor;
+        if (!sensor.active) return;
+        const gamma = Number(event.gamma);
+        if (!Number.isFinite(gamma)) return;
+
+        if (sensor.zeroGamma === null) {
+          sensor.zeroGamma = gamma;
           updateSensorDisplay();
           return;
         }
-        const dt = Math.max(0, Math.min(0.2, (now - sensor.lastTime) / 1000));
-        sensor.lastTime = now;
-        if (Number.isFinite(rate)) {
-          sensor.validRateCount += 1;
-          const filteredRate = Math.abs(rate) < 0.12 ? 0 : rate;
-          sensor.moved = normalize180(sensor.moved + filteredRate * dt * sensor.inversion);
-        }
+        sensor.validRateCount += 1;
+        sensor.moved = normalize180((gamma - sensor.zeroGamma) * sensor.inversion);
         updateSensorDisplay();
       }
 
@@ -1326,19 +1328,24 @@
           sensorStatus.className = 'sensor-status warning';
           return;
         }
-        if (typeof DeviceMotionEvent === 'undefined') {
+        if (typeof DeviceMotionEvent === 'undefined' || typeof DeviceOrientationEvent === 'undefined') {
           sensorStatus.textContent = 'Este navegador não disponibiliza sensores de movimento';
           sensorStatus.className = 'sensor-status warning';
           return;
         }
         try {
+          const permissionRequests = [];
           if (typeof DeviceMotionEvent.requestPermission === 'function') {
-            const permission = await DeviceMotionEvent.requestPermission();
-            if (permission !== 'granted') {
-              sensorStatus.textContent = 'Permissão de movimento não concedida';
-              sensorStatus.className = 'sensor-status warning';
-              return;
-            }
+            permissionRequests.push(DeviceMotionEvent.requestPermission());
+          }
+          if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            permissionRequests.push(DeviceOrientationEvent.requestPermission());
+          }
+          const permissions = await Promise.all(permissionRequests);
+          if (permissions.some(permission => permission !== 'granted')) {
+            sensorStatus.textContent = 'Permissão de movimento não concedida';
+            sensorStatus.className = 'sensor-status warning';
+            return;
           }
         } catch (_) {
           sensorStatus.textContent = 'Não foi possível obter acesso aos sensores';
@@ -1351,15 +1358,17 @@
         sensor.active = true;
         sensor.moved = 0;
         sensor.lastTime = null;
+        sensor.zeroGamma = null;
         sensor.eventCount = 0;
         sensor.validRateCount = 0;
         sensor.aligned = false;
         sensorStart.textContent = 'Zerar novamente';
         sensorStop.disabled = false;
         window.addEventListener('devicemotion', handleMotion, { passive: true });
+        window.addEventListener('deviceorientation', handleOrientation, { passive: true });
         sensor.timeout = setTimeout(() => {
           if (sensor.active && sensor.validRateCount === 0) {
-            sensorStatus.textContent = sensor.eventCount ? 'O navegador não forneceu leitura do giroscópio' : 'Nenhum dado recebido — verifique a permissão do navegador';
+            sensorStatus.textContent = sensor.eventCount ? 'O navegador não forneceu leitura da orientação' : 'Nenhum dado recebido — verifique a permissão do navegador';
             sensorStatus.className = 'sensor-status warning';
           }
         }, 1800);
