@@ -472,33 +472,30 @@
       font-size: 12px;
     }
 
-    .sensor-track {
-      position: relative;
-      height: 8px;
-      margin: 12px 0 5px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: #1b2932;
+    .sensor-remaining {
+      margin: 14px 0;
+      padding: 12px;
+      border: 1px solid rgba(55, 213, 245, .35);
+      border-radius: 10px;
+      background: #071019;
+      text-align: center;
     }
 
-    .sensor-progress {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 0;
-      background: var(--cyan);
-      box-shadow: 0 0 10px rgba(55, 213, 245, .55);
-      transition: width 100ms linear, left 100ms linear;
+    .sensor-remaining-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
     }
 
-    .sensor-zero {
-      position: absolute;
-      left: 50%;
-      top: -2px;
-      width: 2px;
-      height: 12px;
-      background: #dce6eb;
+    .sensor-remaining-value {
+      display: block;
+      color: var(--cyan);
+      font-size: clamp(22px, 2vw, 28px);
+      font-weight: 720;
+      letter-spacing: -0.02em;
     }
 
     .sensor-status {
@@ -799,8 +796,10 @@
             </div>
           </div>
           <div class="sensor-reading"><span>Movimento relativo</span><strong id="sensorMoved">0,0°</strong></div>
-          <div class="sensor-reading"><span>Falta mover</span><strong id="sensorRemaining">12,4° oeste</strong></div>
-          <div class="sensor-track" aria-hidden="true"><span class="sensor-progress" id="sensorProgress"></span><span class="sensor-zero"></span></div>
+          <div class="sensor-remaining">
+            <span class="sensor-remaining-label">Falta mover</span>
+            <strong class="sensor-remaining-value" id="sensorRemaining">12,4° oeste</strong>
+          </div>
           <p class="sensor-status" id="sensorStatus">Sensor parado</p>
           <div class="sensor-actions">
             <button class="button primary" id="sensorStart" type="button">Zerar e iniciar</button>
@@ -913,7 +912,6 @@
       const sensorTarget = document.getElementById('sensorTarget');
       const sensorMoved = document.getElementById('sensorMoved');
       const sensorRemaining = document.getElementById('sensorRemaining');
-      const sensorProgress = document.getElementById('sensorProgress');
       const sensorStatus = document.getElementById('sensorStatus');
       const sensorStart = document.getElementById('sensorStart');
       const sensorStop = document.getElementById('sensorStop');
@@ -1251,10 +1249,6 @@
 
         sensorMoved.textContent = `${sensor.moved < 0 ? '−' : '+'}${fmt(sensor.moved)}°`;
         sensorNeedle.style.transform = `rotate(${sensor.moved}deg)`;
-
-        const span = Math.min(49, Math.abs(sensor.moved) / Math.max(Math.abs(sensor.target), 1) * 45);
-        sensorProgress.style.width = `${span}%`;
-        sensorProgress.style.left = sensor.moved < 0 ? `${50 - span}%` : '50%';
 
         const error = normalize180(sensor.target - sensor.moved);
         const aligned = state.lineVisible && Math.abs(error) <= 1.5;
